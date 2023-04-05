@@ -74,7 +74,7 @@ void Main_Task(void const *argument) {
     */
 
     // Enable
-    mainStatus = enable_UHF();
+    /*mainStatus = enable_UHF();
 
     if (mainStatus != HAL_OK) {
         debug_printf("[Main Thread/ERROR]: EPS UHF Enable Error: %s", mainStatus);
@@ -89,7 +89,7 @@ void Main_Task(void const *argument) {
         debug_printf("[Main Thread/ERROR]: EPS Payload Enable Error: %s", mainStatus);
     } else {
         debug_printf("[Main Thread/SUCCESS]: Payload Enabled");
-    }
+    }*/
 
     // Turn on Boost Board
     enable_Boost_Board();
@@ -106,7 +106,7 @@ void Main_Task(void const *argument) {
 
     //// Beacon Config ////
     // Period
-    mainStatus = SET_BEACON_PERIOD(3);
+    /*mainStatus = SET_BEACON_PERIOD(3);
     if (mainStatus != HAL_OK) {
         debug_printf("[Main Thread/ERROR]: Beacon period failed to set");
     } else {
@@ -128,7 +128,7 @@ void Main_Task(void const *argument) {
     osDelay(1000);
     // Start Test
     mainStatus = START_BEACON();
-    osDelay(1000);
+    osDelay(1000);*/
 
     // Commented out a bunch of UHF stuff that may get deleted later
 
@@ -147,13 +147,13 @@ void Main_Task(void const *argument) {
     */
 
     /* Temperature sensor test */
-    float uhfTemperature;
+    /*float uhfTemperature;
     mainStatus = GET_UHF_TEMP(&uhfTemperature);
     if (mainStatus != HAL_OK) {
         debug_printf("[Main Thread/ERROR]: Failed to read UHF temperature");
     } else {
         debug_printf("[Main Thread/SUCCESS]: UHF temperature: %lf", uhfTemperature);
-    }
+    }*/
 
     // Enable Transparent Mode
     // TODO: Send command to UHF transceiver to enable transparent mode
@@ -171,14 +171,70 @@ void Main_Task(void const *argument) {
     * EPS, ADCS, SDR, OBC, UHF transceiver
     */
 
-    osDelay(15000); // Delay for 15 seconds to allow ADCS to boot-up in application mode
-    mainStatus = TC_10(1);
+    osDelay(10000); // Delay for 10 seconds to allow ADCS to boot-up in application mode
+
+    mainStatus = TC_2((uint32_t) 0, (uint16_t) 0);
+    if (mainStatus != HAL_OK) {
+        debug_printf("[Main Thread/ERROR]: Failed to set ADCS Current Unix Time");
+    } else {
+        debug_printf("[Main Thread/SUCCESS]: ADCS Current Unix Time Set");
+    }
+
+    mainStatus = TC_3(0);
+    if (mainStatus != HAL_OK) {
+        debug_printf("[Main Thread/ERROR]: Failed to cache ADCS Enabled State");
+    } else {
+        debug_printf("[Main Thread/SUCCESS]: ADCS Enabled State Cached");
+    }
+
+    mainStatus = TC_9(0, 0, 0, 100);
+    if (mainStatus != HAL_OK) {
+        debug_printf("[Main Thread/ERROR]: Failed to configure Unix Settings");
+    } else {
+        debug_printf("[Main Thread/SUCCESS]: ADCS Unix Settings Configured");
+    }
+
+    mainStatus = TC_10((uint8_t) 1);
     if (mainStatus != HAL_OK) {
         debug_printf("[Main Thread/ERROR]: Failed to set ADCS Run Mode");
     } else {
         debug_printf("[Main Thread/SUCCESS]: ADCS Run Mode Set");
-   }
+    }
 
+    mainStatus = TC_11(3, 3, 3, 3, 3, 3, 3, 3, 3);
+    if (mainStatus != HAL_OK) {
+        debug_printf("[Main Thread/ERROR]: Failed to set ADCS Power Control");
+    } else {
+        debug_printf("[Main Thread/SUCCESS]: ADCS Power Control");
+    }
+
+    mainStatus = TC_13(1, 1, 100);
+    if (mainStatus != HAL_OK) {
+        debug_printf("[Main Thread/ERROR]: Failed to set ADCS Altitude Control Mode");
+    } else {
+        debug_printf("[Main Thread/SUCCESS]: ADCS Altitude Control Mode");
+    }
+
+    mainStatus = TC_14(1);
+    if (mainStatus != HAL_OK) {
+        debug_printf("[Main Thread/ERROR]: Failed to set ADCS Altitude Estimation Mode");
+    } else {
+        debug_printf("[Main Thread/SUCCESS]: ADCS Altitude Estimation Mode");
+    }
+
+    mainStatus = TC_15(30.0, 60.0, 90.0);
+    if (mainStatus != HAL_OK) {
+        debug_printf("[Main Thread/ERROR]: Failed to set ADCS Commanded Attitude Angles");
+    } else {
+        debug_printf("[Main Thread/SUCCESS]: ADCS Commanded Attitude Angles");
+    }
+
+   /*mainStatus = TC_1();
+    if (mainStatus != HAL_OK) {
+        debug_printf("[Main Thread/ERROR]: Failed to reset ADCS");
+    } else {
+        debug_printf("[Main Thread/SUCCESS]: ADCS reset");
+    }*/
     //HAL_UART_Receive_IT(&huart1, RxBuffer, 4);
 
     // Main startup complete, begin loop checks

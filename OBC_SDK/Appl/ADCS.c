@@ -21,6 +21,18 @@
 /***************************************** TELECOMMANDS (commands 1 - 127) **********************************************************************/
 
 /**
+ * @brief Reset the ADCS
+ */
+HAL_StatusTypeDef TC_1(){
+	uint8_t data[2];
+	data[0] = 1;
+	data[1] = 0x5A;
+
+	HAL_StatusTypeDef status = ADCS_TELECOMMAND(data, 2);
+	return status;
+}
+
+/**
  * @brief Set Current Unix Time
  * @param sec Time in s since 01/01/1970, 00:00. (Unit of measure is [s])
  * @param millisec Current millisecond count. (Unit of measure is [ms])
@@ -40,6 +52,19 @@ HAL_StatusTypeDef TC_2(uint32_t sec, uint16_t millisec){
 }
 
 /**
+ * @brief Cache enabled state
+ * @param enabledState Enabled state
+ */
+HAL_StatusTypeDef TC_3(uint8_t enabledState){
+	uint8_t data[2];
+	data[0] = 3;
+	data[1] = enabledState;
+
+	HAL_StatusTypeDef status = ADCS_TELECOMMAND(data, 2);
+	return status;
+}
+
+/**
  * @brief Deploy magnetometer boom
  * @param timeout Deployment actuation timeout value. (Unit of measure is [s])
  */
@@ -53,6 +78,23 @@ HAL_StatusTypeDef TC_7(uint8_t timeout){
 }
 
 /**
+ * @brief Configuration settings for unixtime flash memory persistence
+ * @param saveNow Save current unixtime to flash memory
+ * @param saveOnUpdate Save unixtime to flash memory whenever there is a command to update the unixtime
+ * @param savePeriodic Save unixtime to flash memory periodically
+ * @param period Interval at which to save unixtime to flash memory. (Unit of measure is [s])
+ */
+HAL_StatusTypeDef TC_9(uint8_t saveNow, uint8_t saveOnUpdate, uint8_t savePeriodic, uint8_t period){
+	uint8_t data[2];
+	data[0] = 9;
+	data[1] = (saveNow & 0x01) | ((saveOnUpdate & 0x01)<< 1) | ((savePeriodic & 0x01) << 2);
+	data[2] = period;
+
+	HAL_StatusTypeDef status = ADCS_TELECOMMAND(data, 3);
+	return status;
+}
+
+/**
  * @brief Set ADCS enabled state & control loop behavior
  * @param enabled Set ADCS enabled state according to the following values:
  * 		0 Off
@@ -62,7 +104,7 @@ HAL_StatusTypeDef TC_7(uint8_t timeout){
  */
 HAL_StatusTypeDef TC_10(uint8_t enabled){
 	uint8_t data[2];
-	data[0] = 10;
+	data[0] = 0x0A;
 	data[1] = enabled;
 
 	HAL_StatusTypeDef status = ADCS_TELECOMMAND(data, 2);
@@ -868,18 +910,18 @@ HAL_StatusTypeDef ADCS_TELECOMMAND(uint8_t command[], uint8_t in_byte){
         }
         debug_printf("\r\n");
         osMutexWait(UART_Mutex, 2500);
-		debug_printf("[ADCS_TELECOMMAND]: Transmitting Data: %x", telecommand); //shows transmitted commands
+		debug_printf("[ADCS_TELECOMMAND]: Transmitting Data: %u", telecommand); //shows transmitted commands
         status = HAL_UART_Transmit(&huart4, telecommand, in_byte+4, ADCS_UART_TIMEOUT);
-        if(status != HAL_OK){
+        /*if(status != HAL_OK){
             osMutexRelease(UART_Mutex);
             return status;
-        }
+        }*/
 
 
         //I am not sure what this chunk does but it should all be doable by the following line:
-        //status = HAL_UART_Receive(&huart4, data, 6, ADCS_UART_TIMEOUT);
+        status = HAL_UART_Receive(&huart4, data, 6, ADCS_UART_TIMEOUT);
 
-        status = HAL_UART_Receive(&huart4, data, 3, ADCS_UART_TIMEOUT);
+        /*status = HAL_UART_Receive(&huart4, data, 3, ADCS_UART_TIMEOUT);
         debug_printf("[ADCS_TELECOMMAND]: Received Data: %d %d %d", data[0],data[1],data[2]); //shows received initial 3 bits of data
         while(counter<=20 && (data[0]!=0x1F || data[1] != 0x7F || data[2] == 0x1F)){ //Waits for appropriate 3 response characters,
             if(data[2] == 0x1F){ //If the last character is what the first character is supposed to be, shift it over to be correct and then receive the next 2 characters
@@ -902,13 +944,13 @@ HAL_StatusTypeDef ADCS_TELECOMMAND(uint8_t command[], uint8_t in_byte){
             debug_printf("[ADCS_TELECOMMAND]: Received Data: %d %d %d %d %d %d", data[0],data[1],data[2],data[3],data[4],data[5]); //shows received data
         	return HAL_ERROR;
         }
-        status = HAL_UART_Receive(&huart4, data+3, 3, ADCS_UART_TIMEOUT);
+        status = HAL_UART_Receive(&huart4, data+3, 3, ADCS_UART_TIMEOUT);*/
+        debug_printf("[ADCS_TELECOMMAND]: Received Data: %d %d %d %d %d %d", data[0],data[1],data[2],data[3],data[4],data[5]); //shows received data
 
 
 
         osMutexRelease(UART_Mutex);
 
-        debug_printf("[ADCS_TELECOMMAND]: Received Data: %d %d %d %d %d %d", data[0],data[1],data[2],data[3],data[4],data[5]); //shows received data
 
         if(status != HAL_OK)
             return status;

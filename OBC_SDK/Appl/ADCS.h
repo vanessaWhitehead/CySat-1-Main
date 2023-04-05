@@ -16,7 +16,11 @@
 #define ADCS_UART_TIMEOUT 1000
 
 /*************************** TELECOMMAND FUNCTIONS **********************************/
+
+HAL_StatusTypeDef TC_1();
 HAL_StatusTypeDef TC_2(uint32_t, uint16_t);
+HAL_StatusTypeDef TC_3(uint8_t);
+HAL_StatusTypeDef TC_9(uint8_t,uint8_t,uint8_t,uint8_t);
 HAL_StatusTypeDef TC_7(uint8_t);
 HAL_StatusTypeDef TC_10(uint8_t);
 HAL_StatusTypeDef TC_11(uint8_t,uint8_t,uint8_t,uint8_t,uint8_t,uint8_t,uint8_t,uint8_t,uint8_t);
